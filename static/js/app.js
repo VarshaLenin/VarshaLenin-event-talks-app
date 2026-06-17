@@ -37,12 +37,14 @@ const btnTweet = document.getElementById('btn-tweet');
 const charLimitWarning = document.getElementById('char-limit-warning');
 const tweetTemplateSelect = document.getElementById('tweet-template-select');
 const btnExportCsv = document.getElementById('btn-export-csv');
+const themeToggle = document.getElementById('theme-toggle');
 
 // Standard BigQuery Documentation Link
 const DOC_URL = "https://cloud.google.com/bigquery/docs/release-notes";
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     fetchReleaseNotes();
     setupEventListeners();
 });
@@ -61,6 +63,9 @@ function setupEventListeners() {
 
     // Export to CSV
     btnExportCsv.addEventListener('click', exportToCSV);
+
+    // Theme Switch Toggle
+    themeToggle.addEventListener('click', toggleTheme);
 
     // Reset all filters and search
     btnResetFilters.addEventListener('click', resetFilters);
@@ -483,4 +488,21 @@ function showCopySuccess(btnElement) {
         btnElement.classList.remove('copied');
         btnElement.innerHTML = originalSvg;
     }, 1500);
+}
+
+// Theme Initializer
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+    } else {
+        document.body.classList.remove('light-mode');
+    }
+}
+
+// Toggle Theme Handler
+function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    const activeTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+    localStorage.setItem('theme', activeTheme);
 }

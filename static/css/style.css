@@ -921,3 +921,122 @@ body {
         font-size: 0.8rem;
     }
 }
+
+/* Theme Toggle Button Styling */
+.btn-theme-toggle {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-glass);
+    color: var(--color-text-secondary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.btn-theme-toggle:hover {
+    background: var(--bg-glass-hover);
+    color: var(--color-text-primary);
+    transform: scale(1.05);
+    border-color: var(--border-glass-focus);
+}
+
+.btn-theme-toggle .sun-icon {
+    display: none;
+    width: 20px;
+    height: 20px;
+}
+
+.btn-theme-toggle .moon-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+
+/* Light Theme Variables Override */
+body.light-mode {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --bg-glass: rgba(255, 255, 255, 0.7);
+    --bg-glass-hover: rgba(255, 255, 255, 0.85);
+    --border-glass: rgba(15, 23, 42, 0.08);
+    --border-glass-focus: rgba(59, 130, 246, 0.5);
+    
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+    
+    --color-primary-glow: rgba(59, 130, 246, 0.15);
+}
+
+/* Light mode specific UI adjustments */
+body.light-mode .glow-bg::before,
+body.light-mode .glow-bg::after {
+    opacity: 0.04; /* Muted background glow in light mode */
+}
+
+body.light-mode .btn-theme-toggle .sun-icon {
+    display: block;
+}
+
+body.light-mode .btn-theme-toggle .moon-icon {
+    display: none;
+}
+
+/* Make inputs readable in light mode */
+body.light-mode .search-container input,
+body.light-mode .tweet-workspace-container,
+body.light-mode .tweet-workspace-container textarea,
+body.light-mode .template-selector select {
+    background: rgba(255, 255, 255, 0.85) !important;
+    color: #0f172a !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+body.light-mode .search-container input:focus,
+body.light-mode .tweet-workspace-container textarea:focus,
+body.light-mode .template-selector select:focus {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Adjust X/Twitter Button for Light Mode */
+body.light-mode .btn-tweet-action {
+    background-color: #0f172a;
+    color: #ffffff;
+}
+
+body.light-mode .btn-tweet-action:hover {
+    background-color: #1e293b;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);
+}
+
+body.light-mode .skeleton-card {
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.03) 25%, rgba(15, 23, 42, 0.08) 50%, rgba(15, 23, 42, 0.03) 75%);
+    background-size: 200% 100%;
+}
+
+body.light-mode .note-card.selected {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+body.light-mode .note-card:hover {
+    background: rgba(255, 255, 255, 0.85);
+}
+
+body.light-mode .detail-html-content code {
+    background: rgba(15, 23, 42, 0.05);
+}
+
+body.light-mode .btn-secondary {
+    background: rgba(255, 255, 255, 0.8);
+    color: #0f172a;
+    border-color: rgba(15, 23, 42, 0.1);
+}
+
+body.light-mode .btn-secondary:hover {
+    background: #ffffff;
+}
