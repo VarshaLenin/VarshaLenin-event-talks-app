@@ -36,6 +36,7 @@ const tweetCharBadge = document.getElementById('tweet-char-badge');
 const btnTweet = document.getElementById('btn-tweet');
 const charLimitWarning = document.getElementById('char-limit-warning');
 const tweetTemplateSelect = document.getElementById('tweet-template-select');
+const btnExportCsv = document.getElementById('btn-export-csv');
 
 // Standard BigQuery Documentation Link
 const DOC_URL = "https://cloud.google.com/bigquery/docs/release-notes";
@@ -57,6 +58,9 @@ function setupEventListeners() {
     btnRetry.addEventListener('click', () => {
         fetchReleaseNotes(true);
     });
+
+    // Export to CSV
+    btnExportCsv.addEventListener('click', exportToCSV);
 
     // Reset all filters and search
     btnResetFilters.addEventListener('click', resetFilters);
@@ -246,12 +250,27 @@ function renderFeedList() {
         card.innerHTML = `
             <div class="card-header">
                 <span class="card-date">${note.date}</span>
-                <span class="badge ${badgeClass}">${note.type}</span>
+                <div class="card-actions">
+                    <button class="btn-copy-card" title="Copy text to clipboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                    </button>
+                    <span class="badge ${badgeClass}">${note.type}</span>
+                </div>
             </div>
             <div class="card-body">
                 <p>${escapeHTML(note.text)}</p>
             </div>
         `;
+
+        // Copy button action
+        const copyBtn = card.querySelector('.btn-copy-card');
+        copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Stop click from bubbling up to selecting card
+            copyTextToClipboard(note.text, copyBtn);
+        });
 
         card.addEventListener('click', () => {
             selectNoteCard(note, card);
@@ -389,4 +408,79 @@ function escapeHTML(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+// Export currently filtered list to CSV
+function exportToCSV() {
+    if (filteredNotes.length === 0) {
+        alert("No release notes available to export.");
+        return;
+    }
+    
+    const headers = ["Date", "Category", "Description"];
+    
+    const rows = filteredNotes.map(note => {
+        const date = note.date.replace(/"/g, '""');
+        const category = note.type.replace(/"/g, '""');
+        const text = note.text.replace(/"/g, '""');
+        
+        return `"${date}","${category}","${text}"`;
+    });
+    
+    const csvContent = [headers.join(","), ...rows].join("\r\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    const dateTag = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `bigquery_release_notes_${dateTag}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Clipboard copier with animation feedback
+function copyTextToClipboard(text, btnElement) {
+    if (!navigator.clipboard) {
+        // Fallback for older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand("copy");
+            showCopySuccess(btnElement);
+        } catch (err) {
+            console.error("Fallback copy failed", err);
+        }
+        document.body.removeChild(textarea);
+        return;
+    }
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showCopySuccess(btnElement);
+    }).catch(err => {
+        console.error("Clipboard copy failed", err);
+    });
+}
+
+function showCopySuccess(btnElement) {
+    btnElement.classList.add('copied');
+    const originalSvg = btnElement.innerHTML;
+    
+    btnElement.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    `;
+    
+    setTimeout(() => {
+        btnElement.classList.remove('copied');
+        btnElement.innerHTML = originalSvg;
+    }, 1500);
 }

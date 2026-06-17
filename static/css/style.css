@@ -455,7 +455,7 @@ body {
 .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 12px;
 }
 
@@ -463,6 +463,55 @@ body {
     font-size: 0.85rem;
     color: var(--color-text-secondary);
     font-weight: 500;
+}
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-copy-card {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    opacity: 0;
+}
+
+.btn-copy-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-primary);
+}
+
+.btn-copy-card.copied {
+    color: var(--color-feature);
+}
+
+.note-card:hover .btn-copy-card {
+    opacity: 0.7;
+}
+
+.note-card:hover .btn-copy-card:hover {
+    opacity: 1;
+}
+
+.btn-copy-card svg {
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+}
+
+@media (max-width: 1024px) {
+    .btn-copy-card {
+        opacity: 0.7;
+    }
 }
 
 /* Badge Styles */
