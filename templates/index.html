@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Viewer & Tweet Poster</title>
+    <meta name="description" content="A modern web dashboard to view the latest Google Cloud BigQuery release notes and instantly share updates on Twitter/X.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="bq-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#grad1)" />
+                        <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="url(#grad2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="grad1" x1="2" y1="2" x2="22" y2="12" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="50%" stop-color="#8b5cf6" />
+                                <stop offset="100%" stop-color="#ec4899" />
+                            </linearGradient>
+                            <linearGradient id="grad2" x1="2" y1="12" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="100%" stop-color="#8b5cf6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="header-title-container">
+                    <h1 id="app-main-title">BigQuery Release Notes</h1>
+                    <p class="header-subtitle">Stay up to date with Google Cloud BigQuery enhancements, features, and fixes.</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="last-fetched-container">
+                    <span class="pulse-indicator status-synced" id="status-dot"></span>
+                    <span id="last-fetched-text">Syncing...</span>
+                </div>
+                <button id="btn-refresh" class="btn btn-primary btn-icon" title="Refresh Release Notes">
+                    <svg class="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace Dashboard -->
+        <main class="dashboard-grid">
+            <!-- Sidebar / Feed Column -->
+            <section class="feed-column">
+                <div class="control-panel glass-card">
+                    <!-- Search Bar -->
+                    <div class="search-container">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search updates (e.g. Gemini, SQL, Continuous)..." aria-label="Search release notes">
+                        <button id="btn-clear-search" class="btn-clear" style="display:none;" title="Clear search">&times;</button>
+                    </div>
+                    
+                    <!-- Filters Pills -->
+                    <div class="filter-pills" id="filter-container">
+                        <button class="pill active" data-filter="all">All</button>
+                        <button class="pill" data-filter="feature">Features</button>
+                        <button class="pill" data-filter="announcement">Announcements</button>
+                        <button class="pill" data-filter="issue">Issues</button>
+                        <button class="pill" data-filter="deprecated">Deprecations</button>
+                        <button class="pill" data-filter="changed">Changes</button>
+                    </div>
+                </div>
+
+                <!-- Feed Container -->
+                <div class="feed-list-wrapper">
+                    <div id="loading-skeleton" class="skeleton-container" style="display: none;">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                    
+                    <div id="error-state" class="error-container" style="display: none;">
+                        <div class="error-illustration">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <h3>Failed to retrieve release notes</h3>
+                        <p id="error-message">Could not fetch the Google Cloud RSS feed. Please check your internet connection and try again.</p>
+                        <button id="btn-retry" class="btn btn-secondary">Retry Connection</button>
+                    </div>
+
+                    <div id="empty-state" class="empty-container" style="display: none;">
+                        <div class="empty-illustration">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="9" x2="15" y2="9"></line>
+                                <line x1="9" y1="13" x2="15" y2="13"></line>
+                                <line x1="9" y1="17" x2="11" y2="17"></line>
+                            </svg>
+                        </div>
+                        <h3>No release notes found</h3>
+                        <p>No updates match your search term or category filters.</p>
+                        <button id="btn-reset-filters" class="btn btn-secondary">Clear Filters</button>
+                    </div>
+
+                    <div id="notes-list" class="notes-list">
+                        <!-- Dynamic note cards will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Preview & Tweet Action Panel -->
+            <section class="preview-column">
+                <div class="preview-panel-card glass-card" id="detail-panel">
+                    
+                    <!-- Unselected State -->
+                    <div id="detail-empty-state" class="panel-placeholder">
+                        <div class="placeholder-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <h2>Select an Update</h2>
+                        <p>Click on any release note from the feed to view full details, read official documentation links, and draft a Tweet/X share post.</p>
+                    </div>
+
+                    <!-- Selected State (Hidden by default) -->
+                    <div id="detail-content-state" style="display: none;" class="panel-details">
+                        <div class="panel-header-info">
+                            <span class="detail-date" id="detail-date">June 15, 2026</span>
+                            <span class="badge" id="detail-badge">Feature</span>
+                        </div>
+                        
+                        <!-- Renders HTML content -->
+                        <div class="detail-description-container">
+                            <h3 class="detail-section-title">Update Description</h3>
+                            <div class="detail-html-content" id="detail-html">
+                                <!-- HTML content from the RSS feed will be rendered here safely -->
+                            </div>
+                        </div>
+
+                        <!-- Tweet Drafting Workspace -->
+                        <div class="tweet-workspace-container">
+                            <div class="workspace-header">
+                                <h3 class="detail-section-title">Draft Tweet / Post</h3>
+                                <div class="character-count-badge" id="tweet-char-badge">
+                                    <span id="tweet-char-count">0</span> / 280
+                                </div>
+                            </div>
+                            
+                            <!-- Template select dropdown -->
+                            <div class="template-selector">
+                                <label for="tweet-template-select">Draft Style:</label>
+                                <select id="tweet-template-select" aria-label="Choose a tweet template style">
+                                    <option value="default">✨ Highlights (Default)</option>
+                                    <option value="professional">💼 Professional Update</option>
+                                    <option value="minimalist">⚡ Quick Summary</option>
+                                    <option value="enthusiastic">🚀 Exciting Launch</option>
+                                </select>
+                            </div>
+
+                            <div class="textarea-wrapper">
+                                <textarea id="tweet-textarea" rows="5" placeholder="Customize your tweet draft..."></textarea>
+                                <div class="warning-over-limit" id="char-limit-warning" style="display:none;">
+                                    ⚠️ Text exceeds the 280-character limit for standard Twitter posts.
+                                </div>
+                            </div>
+
+                            <button id="btn-tweet" class="btn btn-tweet-action btn-icon-tweet">
+                                <svg class="icon-twitter" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                </svg>
+                                <span>Share on X / Twitter</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer-bar">
+            <p>BigQuery Release Notes Viewer &bull; Built with Flask &amp; Vanilla Web Technology &bull; Google Cloud feeds are fetched in real-time.</p>
+        </footer>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
